@@ -1,24 +1,37 @@
 let state = {
+    inputValue: localStorage.getItem("inputValue") ?? "",
     hash: window.location.hash,
-    inputValue: "",
   };
   
   function setState(newState) {
-    state = { ...state, ...newState };
+    const prevState = {... state}
+    const nextState = { ...state, ...newState }
+    state = nextState;
     render();
+    onStateChange(prevState, nextState);
   }
+
+ function onStateChange(prevState, nextState) {
+    if (prevState.inputValue != nextState.inputValue) {
+        localStorage.setItem("inputValue", nextState.inputValue);
+    }
+    if (prevState.hash != nextState.hash) {
+        history.pushState(null, "", nextState.hash);
+    }
+ }
   
   function Link(props) {
-    const a = document.createElement("a");
-    a.href = props.href;
-    a.textContent = props.label;
-    a.onclick = function (event) {
+    const link = document.createElement("a");
+    link.href = props.href;
+    link.textContent = props.label;
+    link.onclick = function (event) {
       event.preventDefault();
       const url = new URL(event.target.href);
-      setState({ hash: url.hash });
-      history.pushState(null, "", url.hash);
+      setState({ hash: url.hash });      
+      render();
     };
-    return a;
+
+    return link;
   }
   
   function Navbar() {
@@ -34,7 +47,7 @@ let state = {
   
   function HomeScreen() {
     const navbar = Navbar();
-  
+
     const p = document.createElement("p");
   
     const textPreview = document.createElement("p");
@@ -43,10 +56,10 @@ let state = {
     const input = document.createElement("input");
     input.id = "input";
     input.value = state.inputValue;
-    input.placeholder = "Enter Your Name";
     input.oninput = function (event) {
       setState({ inputValue: event.target.value });
     };
+    input.placeholder = "Enter Your Name";
   
     const buttonClear = document.createElement("button");
     buttonClear.textContent = "Clear";
